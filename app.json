@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "Recipe Box",
+    "slug": "recipe-box",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "recipebox",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFF8F0"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.yourname.recipebox",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Recipe Box uses your camera to capture recipe pages for OCR.",
+        "NSPhotoLibraryUsageDescription": "Recipe Box accesses your photo library so you can import recipe photos."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFF8F0"
+      },
+      "package": "com.yourname.recipebox",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-camera",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Recipe Box accesses your photo library to import recipe images.",
+          "cameraPermission": "Recipe Box uses your camera to capture recipe pages."
+        }
+      ],
+      [
+        "@react-native-ml-kit/text-recognition",
+        {}
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
