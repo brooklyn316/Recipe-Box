@@ -1,6 +1,6 @@
 import React from 'react';
-import { Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import * as FileSystem from 'expo-file-system';
 import { insertRecipe } from '@/lib/db';
 import { RecipeDraft, RecipeType } from '@/lib/types';
 import { RecipeForm, FormValues } from '@/components/RecipeForm';
@@ -8,10 +8,13 @@ import { RecipeForm, FormValues } from '@/components/RecipeForm';
 export default function NewRecipeScreen() {
   const params = useLocalSearchParams<{ draft?: string; imageUri?: string }>();
 
-  // Build initial form values — either from OCR draft or blank
+  // The OCR scan image (book page) is passed in via params.imageUri.
+  // We do NOT carry it into the recipe — it only existed for OCR purposes.
+  // It will be deleted after saving. The recipe's dish photo starts as null.
   let initial: FormValues = {
     title: '',
     source: '',
+    pageNumber: '',
     type: 'main' as RecipeType,
     servings: '',
     prepTime: '',
@@ -20,7 +23,7 @@ export default function NewRecipeScreen() {
     method: [''],
     notes: '',
     tags: [],
-    originalImageUri: null,
+    originalImageUri: null,   // dish photo — user adds this separately
     isFavourite: false,
   };
 
@@ -28,18 +31,19 @@ export default function NewRecipeScreen() {
     try {
       const draft: RecipeDraft = JSON.parse(params.draft);
       initial = {
-        title:           draft.title,
-        source:          draft.source,
-        type:            draft.type,
-        servings:        draft.servings,
-        prepTime:        draft.prepTime,
-        cookTime:        draft.cookTime,
-        ingredients:     draft.ingredients.length > 0 ? draft.ingredients : [''],
-        method:          draft.method.length > 0 ? draft.method : [''],
-        notes:           draft.notes,
-        tags:            draft.tags,
-        originalImageUri: params.imageUri || null,
-        isFavourite:     false,
+        title:            draft.title,
+        source:           draft.source,
+        pageNumber:       draft.pageNumber,
+        type:             draft.type,
+        servings:         draft.servings,
+        prepTime:         draft.prepTime,
+        cookTime:         draft.cookTime,
+        ingredients:      draft.ingredients.length > 0 ? draft.ingredients : [''],
+        method:           draft.method.length > 0 ? draft.method : [''],
+        notes:            draft.notes,
+        tags:             draft.tags,
+        originalImageUri: null,   // dish photo — not the scanned book page
+        isFavourite:      false,
       };
     } catch {
       // silently fall back to blank form
@@ -50,6 +54,7 @@ export default function NewRecipeScreen() {
     const id = await insertRecipe({
       title:            values.title.trim(),
       source:           values.source.trim(),
+      pageNumber:       values.pageNumber.trim(),
       type:             values.type,
       servings:         values.servings.trim(),
       prepTime:         values.prepTime.trim(),
@@ -60,10 +65,16 @@ export default function NewRecipeScreen() {
       tags:             values.tags,
       originalImageUri: values.originalImageUri,
       isFavourite:      values.isFavourite,
+      rating:           0,
     });
-    // Navigate to the newly created recipe
+
+    // Delete the temporary OCR scan image — it's no longer needed
+    if (params.imageUri) {
+      try { await FileSystem.deleteAsync(params.imageUri, { idempotent: true }); } catch { /* ignore */ }
+    }
+
     router.replace(`/recipe/${id}`);
   };
 
-  return <RecipeForm initialValues={initial} onSubmit={handleSubmit} submitLabel="Save Recipe" />;
+  return <RecipeForm initialValues={initial} onSubmit={handleSubmit} submitLabel="Save Recipe" screenTitle="New Recipe" />;
 }

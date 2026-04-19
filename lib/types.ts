@@ -17,12 +17,13 @@ export type RecipeTag =
   | 'quick'
   | 'freezer-friendly';
 
-export type RecipeType = 'main' | 'dessert' | 'snack' | 'side' | 'drink' | 'other';
+export type RecipeType = 'main' | 'dessert' | 'snack' | 'side' | 'drink' | 'airfryer' | 'other';
 
 export interface Recipe {
   id: number;
   title: string;
   source: string;          // e.g. "Edmonds Cookbook", "Magazine clipping"
+  pageNumber: string;      // e.g. "48"
   type: RecipeType;
   servings: string;        // e.g. "4", "4–6"
   prepTime: string;        // e.g. "15 min"
@@ -33,6 +34,7 @@ export interface Recipe {
   tags: RecipeTag[];
   originalImageUri: string | null;  // path to saved photo
   isFavourite: boolean;
+  rating: number;          // 0 = unrated, 1–5 stars
   createdAt: number;       // unix timestamp
   updatedAt: number;
 }
@@ -45,6 +47,7 @@ export interface RecipeRow {
   id: number;
   title: string;
   source: string;
+  page_number: string;
   type: string;
   servings: string;
   prep_time: string;
@@ -55,6 +58,7 @@ export interface RecipeRow {
   tags: string;           // JSON
   original_image_uri: string | null;
   is_favourite: number;   // 0 | 1
+  rating: number;         // 0–5
   created_at: number;
   updated_at: number;
 }
@@ -71,6 +75,7 @@ export interface OcrResult {
 export interface RecipeDraft {
   title: string;
   source: string;
+  pageNumber: string;
   servings: string;
   prepTime: string;
   cookTime: string;

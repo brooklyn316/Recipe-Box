@@ -7,14 +7,33 @@ import { Colors, Spacing, Radius, Typography } from '@/lib/theme';
 
 interface Props {
   recipe: Recipe;
+  onPress?: () => void;
   onToggleFavourite?: (id: number) => void;
 }
 
-export function RecipeCard({ recipe, onToggleFavourite }: Props) {
+function StarRow({ rating }: { rating: number }) {
+  if (!rating) return null;
+  return (
+    <View style={styles.stars}>
+      {[1, 2, 3, 4, 5].map((s) => (
+        <Ionicons
+          key={s}
+          name={s <= rating ? 'star' : 'star-outline'}
+          size={11}
+          color={s <= rating ? '#F5A623' : Colors.border}
+        />
+      ))}
+    </View>
+  );
+}
+
+export function RecipeCard({ recipe, onPress, onToggleFavourite }: Props) {
+  const handlePress = onPress ?? (() => router.push(`/recipe/${recipe.id}`));
+
   return (
     <Pressable
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
-      onPress={() => router.push(`/recipe/${recipe.id}`)}
+      onPress={handlePress}
     >
       {/* Thumbnail */}
       {recipe.originalImageUri ? (
@@ -42,6 +61,8 @@ export function RecipeCard({ recipe, onToggleFavourite }: Props) {
           ) : null}
         </View>
 
+        <StarRow rating={recipe.rating ?? 0} />
+
         {recipe.tags.length > 0 && (
           <View style={styles.tags}>
             {recipe.tags.slice(0, 3).map((tag) => (
@@ -57,17 +78,19 @@ export function RecipeCard({ recipe, onToggleFavourite }: Props) {
       </View>
 
       {/* Favourite button */}
-      <Pressable
-        style={styles.favBtn}
-        onPress={() => onToggleFavourite?.(recipe.id)}
-        hitSlop={10}
-      >
-        <Ionicons
-          name={recipe.isFavourite ? 'heart' : 'heart-outline'}
-          size={22}
-          color={recipe.isFavourite ? Colors.primary : Colors.textMuted}
-        />
-      </Pressable>
+      {onToggleFavourite && (
+        <Pressable
+          style={styles.favBtn}
+          onPress={() => onToggleFavourite(recipe.id)}
+          hitSlop={10}
+        >
+          <Ionicons
+            name={recipe.isFavourite ? 'heart' : 'heart-outline'}
+            size={22}
+            color={recipe.isFavourite ? Colors.primary : Colors.textMuted}
+          />
+        </Pressable>
+      )}
     </Pressable>
   );
 }
@@ -87,64 +110,21 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   pressed: { opacity: 0.85 },
-  thumb: {
-    width: 90,
-    height: 90,
-  },
+  thumb: { width: 90, height: 90 },
   thumbPlaceholder: {
-    width: 90,
-    height: 90,
+    width: 90, height: 90,
     backgroundColor: Colors.chip,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center',
   },
-  content: {
-    flex: 1,
-    padding: Spacing.sm,
-    paddingRight: Spacing.xl,
-  },
-  title: {
-    ...Typography.h3,
-    fontSize: 15,
-    marginBottom: 2,
-  },
-  source: {
-    ...Typography.small,
-    marginBottom: 4,
-  },
-  meta: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-    marginBottom: 4,
-  },
-  metaText: {
-    fontSize: 12,
-    color: Colors.textMuted,
-  },
-  tags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
-  },
-  chip: {
-    backgroundColor: Colors.chip,
-    borderRadius: Radius.full,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  chipText: {
-    fontSize: 11,
-    color: Colors.chipText,
-    fontWeight: '600',
-  },
-  moreText: {
-    fontSize: 11,
-    color: Colors.textMuted,
-    alignSelf: 'center',
-  },
-  favBtn: {
-    position: 'absolute',
-    top: Spacing.sm,
-    right: Spacing.sm,
-  },
+  content: { flex: 1, padding: Spacing.sm, paddingRight: Spacing.xl },
+  title: { ...Typography.h3, fontSize: 15, marginBottom: 2 },
+  source: { ...Typography.small, marginBottom: 4 },
+  meta: { flexDirection: 'row', gap: Spacing.md, marginBottom: 4 },
+  metaText: { fontSize: 12, color: Colors.textMuted },
+  stars: { flexDirection: 'row', gap: 2, marginBottom: 4 },
+  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
+  chip: { backgroundColor: Colors.chip, borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 2 },
+  chipText: { fontSize: 11, color: Colors.chipText, fontWeight: '600' },
+  moreText: { fontSize: 11, color: Colors.textMuted, alignSelf: 'center' },
+  favBtn: { position: 'absolute', top: Spacing.sm, right: Spacing.sm },
 });

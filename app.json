@@ -4,9 +4,9 @@
     "slug": "recipe-box",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "scheme": "recipebox",
     "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -14,10 +14,11 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.yourname.recipebox",
+      "bundleIdentifier": "com.dardern.recipebox",
       "infoPlist": {
         "NSCameraUsageDescription": "Recipe Box uses your camera to capture recipe pages for OCR.",
-        "NSPhotoLibraryUsageDescription": "Recipe Box accesses your photo library so you can import recipe photos."
+        "NSPhotoLibraryUsageDescription": "Recipe Box accesses your photo library so you can import recipe photos.",
+        "NSRemindersUsageDescription": "Recipe Box can add ingredients to your Supermarket List in Reminders."
       }
     },
     "android": {
@@ -41,10 +42,7 @@
           "cameraPermission": "Recipe Box uses your camera to capture recipe pages."
         }
       ],
-      [
-        "@react-native-ml-kit/text-recognition",
-        {}
-      ]
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true

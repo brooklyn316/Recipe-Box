@@ -26,6 +26,7 @@ export default function EditRecipeScreen() {
   const initial: FormValues = {
     title:            recipe.title,
     source:           recipe.source,
+    pageNumber:       recipe.pageNumber,
     type:             recipe.type,
     servings:         recipe.servings,
     prepTime:         recipe.prepTime,
@@ -42,6 +43,7 @@ export default function EditRecipeScreen() {
     await updateRecipe(recipe.id, {
       title:            values.title.trim(),
       source:           values.source.trim(),
+      pageNumber:       values.pageNumber.trim(),
       type:             values.type,
       servings:         values.servings.trim(),
       prepTime:         values.prepTime.trim(),
@@ -56,5 +58,5 @@ export default function EditRecipeScreen() {
     router.back();
   };
 
-  return <RecipeForm initialValues={initial} onSubmit={handleSubmit} submitLabel="Save Changes" />;
+  return <RecipeForm initialValues={initial} onSubmit={handleSubmit} submitLabel="Save Changes" screenTitle="Edit Recipe" />;
 }

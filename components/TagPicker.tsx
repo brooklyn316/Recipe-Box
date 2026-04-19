@@ -12,12 +12,13 @@ export const ALL_TAGS: RecipeTag[] = [
 ];
 
 export const ALL_TYPES: { value: RecipeType; label: string }[] = [
-  { value: 'main',    label: 'Main' },
-  { value: 'dessert', label: 'Dessert' },
-  { value: 'snack',   label: 'Snack' },
-  { value: 'side',    label: 'Side' },
-  { value: 'drink',   label: 'Drink' },
-  { value: 'other',   label: 'Other' },
+  { value: 'main',     label: 'Main' },
+  { value: 'dessert',  label: 'Dessert' },
+  { value: 'snack',    label: 'Snack' },
+  { value: 'side',     label: 'Side' },
+  { value: 'drink',    label: 'Drink' },
+  { value: 'airfryer', label: 'Air Fryer' },
+  { value: 'other',    label: 'Other' },
 ];
 
 // ─── Tag Picker ───────────────────────────────────────────────────────────────

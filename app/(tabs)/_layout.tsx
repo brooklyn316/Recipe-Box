@@ -1,28 +1,19 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/lib/theme';
-
-type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
-
-function TabIcon({ name, color, size }: { name: IoniconsName; color: string; size: number }) {
-  return <Ionicons name={name} size={size} color={color} />;
-}
+import { Colors } from '../../lib/theme';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
+        headerShown: false,
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textMuted,
         tabBarStyle: {
           backgroundColor: Colors.white,
           borderTopColor: Colors.border,
-          borderTopWidth: 1,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
-        headerStyle: { backgroundColor: Colors.background },
-        headerTitleStyle: { fontWeight: '700', color: Colors.text },
-        headerShadowVisible: false,
+        tabBarLabelStyle: { fontSize: 11 },
       }}
     >
       <Tabs.Screen
@@ -30,7 +21,7 @@ export default function TabLayout() {
         options={{
           title: 'Recipes',
           tabBarIcon: ({ color, size }) => (
-            <TabIcon name="book-outline" color={color} size={size} />
+            <Ionicons name="book-outline" size={size} color={color} />
           ),
         }}
       />
@@ -39,7 +30,25 @@ export default function TabLayout() {
         options={{
           title: 'Favourites',
           tabBarIcon: ({ color, size }) => (
-            <TabIcon name="heart-outline" color={color} size={size} />
+            <Ionicons name="heart-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="collections"
+        options={{
+          title: 'Collections',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="folder-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="shopping"
+        options={{
+          title: 'Shopping',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="cart-outline" size={size} color={color} />
           ),
         }}
       />
@@ -48,7 +57,16 @@ export default function TabLayout() {
         options={{
           title: 'Planner',
           tabBarIcon: ({ color, size }) => (
-            <TabIcon name="calendar-outline" color={color} size={size} />
+            <Ionicons name="calendar-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings-outline" size={size} color={color} />
           ),
         }}
       />
