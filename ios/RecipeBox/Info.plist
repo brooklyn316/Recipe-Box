@@ -8,6 +8,19 @@
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
     <string>Recipe Box</string>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+      <dict>
+        <key>CFBundleTypeName</key>
+        <string>Recipe Box Recipe</string>
+        <key>CFBundleTypeRole</key>
+        <string>Editor</string>
+        <key>LSItemContentTypes</key>
+        <array>
+          <string>com.dardern.recipebox.recipe</string>
+        </array>
+      </dict>
+    </array>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -19,7 +32,7 @@
     <key>CFBundlePackageType</key>
     <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.0</string>
+    <string>1.1.0</string>
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleURLTypes</key>
@@ -33,7 +46,7 @@
       </dict>
     </array>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>3</string>
     <key>LSMinimumSystemVersion</key>
     <string>12.0</string>
     <key>LSRequiresIPhoneOS</key>
@@ -89,5 +102,27 @@
     <string>Light</string>
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <false/>
+    <key>UTExportedTypeDeclarations</key>
+    <array>
+      <dict>
+        <key>UTTypeIdentifier</key>
+        <string>com.dardern.recipebox.recipe</string>
+        <key>UTTypeDescription</key>
+        <string>Recipe Box Recipe</string>
+        <key>UTTypeConformsTo</key>
+        <array>
+          <string>public.json</string>
+        </array>
+        <key>UTTypeTagSpecification</key>
+        <dict>
+          <key>public.filename-extension</key>
+          <array>
+            <string>recipebox</string>
+          </array>
+          <key>public.mime-type</key>
+          <string>application/json</string>
+        </dict>
+      </dict>
+    </array>
   </dict>
 </plist>

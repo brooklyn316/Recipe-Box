@@ -113,32 +113,16 @@ export default function RecipeDetailScreen() {
   };
 
   const handleShare = async () => {
-    const text = [
-      `📖 ${recipe.title}`,
-      recipe.source ? `Source: ${recipe.source}` : '',
-      recipe.servings ? `Serves: ${recipe.servings}` : '',
-      '',
-      'INGREDIENTS',
-      ...scaledIngredients.map((i) => `• ${i}`),
-      '',
-      'METHOD',
-      ...recipe.method.map((s, i) => `${i + 1}. ${s}`),
-      recipe.notes ? `\nNotes: ${recipe.notes}` : '',
-    ].filter(Boolean).join('\n');
-    await Share.share({ message: text, title: recipe.title });
-  };
-
-  const handleFav = async () => {
-    await toggleFavourite(recipe.id); await load();
-  };
-
-  const handleShare = async () => {
     if (!recipe) return;
     try {
       await shareRecipe(recipe);
     } catch (err: any) {
       Alert.alert('Could not share', err.message ?? 'Something went wrong.');
     }
+  };
+
+  const handleFav = async () => {
+    await toggleFavourite(recipe.id); await load();
   };
 
   // ── Shopping list picker ─────────────────────────────────────────────────────
