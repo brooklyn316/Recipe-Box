@@ -17,7 +17,7 @@ export type RecipeTag =
   | 'quick'
   | 'freezer-friendly';
 
-export type RecipeType = 'main' | 'dessert' | 'snack' | 'side' | 'drink' | 'airfryer' | 'other';
+export type RecipeType = 'main' | 'dessert' | 'snack' | 'side' | 'drink' | 'airfryer' | 'other' | string;
 
 export interface Recipe {
   id: number;

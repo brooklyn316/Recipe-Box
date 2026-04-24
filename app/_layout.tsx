@@ -1,9 +1,21 @@
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as Linking from 'expo-linking';
 import { initDb } from '../lib/db';
 import { Colors } from '../lib/theme';
+
+function handleIncomingUrl(url: string | null, isReady: boolean) {
+  if (!url || !isReady) return;
+  // Handle .recipebox files opened via AirDrop / Files / Share Sheet
+  if (url.includes('.recipebox') || url.includes('recipebox')) {
+    router.push({
+      pathname: '/import-recipe',
+      params: { fileUri: encodeURIComponent(url) },
+    });
+  }
+}
 
 export default function RootLayout() {
   const [ready, setReady] = useState(false);
@@ -13,11 +25,25 @@ export default function RootLayout() {
       .then(() => setReady(true))
       .catch((err) => {
         console.error('DB init failed:', err);
-        // Still set ready so the app doesn't hang forever —
-        // individual screens will show their own error states.
         setReady(true);
       });
   }, []);
+
+  // Handle file opened while app was already running
+  useEffect(() => {
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      handleIncomingUrl(url, ready);
+    });
+    return () => subscription.remove();
+  }, [ready]);
+
+  // Handle file opened to launch the app cold
+  useEffect(() => {
+    if (!ready) return;
+    Linking.getInitialURL().then((url) => {
+      handleIncomingUrl(url, true);
+    });
+  }, [ready]);
 
   if (!ready) {
     return (

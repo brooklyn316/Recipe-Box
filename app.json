@@ -2,7 +2,7 @@
   "expo": {
     "name": "Recipe Box",
     "slug": "recipe-box",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "scheme": "recipebox",
     "userInterfaceStyle": "light",
@@ -14,12 +14,30 @@
     },
     "ios": {
       "supportsTablet": false,
-      "buildNumber": "2",
+      "buildNumber": "3",
       "bundleIdentifier": "com.dardern.recipebox",
       "infoPlist": {
         "NSCameraUsageDescription": "Recipe Box uses your camera to capture recipe pages for OCR.",
         "NSPhotoLibraryUsageDescription": "Recipe Box accesses your photo library so you can import recipe photos.",
-        "NSRemindersUsageDescription": "Recipe Box can add ingredients to your Supermarket List in Reminders."
+        "NSRemindersUsageDescription": "Recipe Box can add ingredients to your Supermarket List in Reminders.",
+        "CFBundleDocumentTypes": [
+          {
+            "CFBundleTypeName": "Recipe Box Recipe",
+            "CFBundleTypeRole": "Editor",
+            "LSItemContentTypes": ["com.dardern.recipebox.recipe"]
+          }
+        ],
+        "UTExportedTypeDeclarations": [
+          {
+            "UTTypeIdentifier": "com.dardern.recipebox.recipe",
+            "UTTypeDescription": "Recipe Box Recipe",
+            "UTTypeConformsTo": ["public.json"],
+            "UTTypeTagSpecification": {
+              "public.filename-extension": ["recipebox"],
+              "public.mime-type": "application/json"
+            }
+          }
+        ]
       }
     },
     "android": {

@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, Image, Pressable,
   StyleSheet, Alert, Share, Modal, TextInput,
 } from 'react-native';
+import { shareRecipe } from '@/lib/share';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
@@ -131,11 +132,20 @@ export default function RecipeDetailScreen() {
     await toggleFavourite(recipe.id); await load();
   };
 
+  const handleShare = async () => {
+    if (!recipe) return;
+    try {
+      await shareRecipe(recipe);
+    } catch (err: any) {
+      Alert.alert('Could not share', err.message ?? 'Something went wrong.');
+    }
+  };
+
   // ── Shopping list picker ─────────────────────────────────────────────────────
 
   const openShoppingPicker = () => {
-    // Pre-select all ingredients by default
-    setShoppingSelection(new Set(scaledIngredients.map((_, i) => i)));
+    // Start with nothing selected — user taps to add
+    setShoppingSelection(new Set());
     setShowShoppingPicker(true);
   };
 
@@ -326,6 +336,7 @@ export default function RecipeDetailScreen() {
           <ActionBtn icon="timer-outline"   label="Timers" onPress={() => setShowTimers((v) => !v)} active={showTimers} />
           <ActionBtn icon="calendar-outline" label="Made it!" onPress={() => setShowLog(true)} />
           <ActionBtn icon="folder-outline"  label="Collections" onPress={handleOpenCollections} />
+          <ActionBtn icon="share-outline"   label="Share" onPress={handleShare} />
         </View>
 
         {/* Last cooked notice */}
