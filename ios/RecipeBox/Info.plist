@@ -14,7 +14,7 @@
         <key>CFBundleTypeName</key>
         <string>Recipe Box Recipe</string>
         <key>CFBundleTypeRole</key>
-        <string>Owner</string>
+        <string>Editor</string>
         <key>LSHandlerRank</key>
         <string>Owner</string>
         <key>LSItemContentTypes</key>
@@ -50,7 +50,7 @@
       </dict>
     </array>
     <key>CFBundleVersion</key>
-    <string>6</string>
+    <string>7</string>
     <key>LSMinimumSystemVersion</key>
     <string>12.0</string>
     <key>LSRequiresIPhoneOS</key>
