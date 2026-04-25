@@ -14,16 +14,18 @@
     },
     "ios": {
       "supportsTablet": false,
-      "buildNumber": "3",
+      "buildNumber": "5",
       "bundleIdentifier": "com.dardern.recipebox",
       "infoPlist": {
         "NSCameraUsageDescription": "Recipe Box uses your camera to capture recipe pages for OCR.",
         "NSPhotoLibraryUsageDescription": "Recipe Box accesses your photo library so you can import recipe photos.",
         "NSRemindersUsageDescription": "Recipe Box can add ingredients to your Supermarket List in Reminders.",
+        "LSSupportsOpeningDocumentsInPlace": false,
         "CFBundleDocumentTypes": [
           {
             "CFBundleTypeName": "Recipe Box Recipe",
-            "CFBundleTypeRole": "Editor",
+            "CFBundleTypeRole": "Owner",
+            "LSHandlerRank": "Owner",
             "LSItemContentTypes": ["com.dardern.recipebox.recipe"]
           }
         ],
@@ -62,7 +64,9 @@
           "cameraPermission": "Recipe Box uses your camera to capture recipe pages."
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      "./plugins/withXcode26Fix",
+      "./plugins/withDocumentConfig"
     ],
     "experiments": {
       "typedRoutes": true

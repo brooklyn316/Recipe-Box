@@ -490,13 +490,22 @@ function toTitleCase(s: string): string {
   return s;
 }
 
-const DESSERT_WORDS = /cake|biscuit|cookie|tart|pie|pudding|slice|brownie|muffin|cupcake|cheesecake|ice.?cream|sorbet|pavlov|crumble|fudge/i;
+// Words that strongly indicate a savoury main — checked against TITLE first
+// so a "Sticky Orange Chicken" is never mis-labelled as dessert.
+const SAVORY_TITLE_WORDS = /chicken|beef|lamb|pork|fish|prawn|shrimp|turkey|duck|steak|mince|sausage|tofu|salmon|tuna|bacon|ham|veal|venison|crab|lobster|mussel|oyster/i;
+
+// Dessert words — only applied when no savoury protein is in the title
+const DESSERT_WORDS = /\b(cake|biscuit|cookie|tart|pudding|brownie|muffin|cupcake|cheesecake|ice.?cream|sorbet|pavlov|crumble|fudge|tiramisu|mousse|custard|meringue|eclair|macaron)\b/i;
 const BAKING_WORDS  = /bread|loaf|roll|bun|scone|pastry|dough|flour|bake|oven/i;
 const SNACK_WORDS   = /dip|spread|hummus|cracker|chip|nibble|bliss.?ball/i;
 const DRINK_WORDS   = /smoothie|juice|cocktail|drink|shake|lemonade/i;
 const SIDE_WORDS    = /salad|slaw|roast.?veg|side|relish|chutney|sauce|gravy/i;
 
 function guessType(title: string, ingredients: string[]): RecipeType {
+  // A savoury protein in the TITLE always wins — prevents "Sticky Orange Chicken"
+  // or "Honey Soy Chicken Pie" being classified as dessert.
+  if (SAVORY_TITLE_WORDS.test(title)) return 'main';
+
   const text = title + ' ' + ingredients.join(' ');
   if (DESSERT_WORDS.test(text)) return 'dessert';
   if (DRINK_WORDS.test(text))   return 'drink';

@@ -3,6 +3,8 @@ import {
   View, Text, ScrollView, Image, Pressable,
   StyleSheet, Alert, Share, Modal, TextInput,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import { shareRecipe } from '@/lib/share';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +15,7 @@ import {
   addToShoppingList, getCollections, addRecipeToCollection,
   removeRecipeFromCollection, getRecipeCollectionIds, Collection,
   setRating,
+  updateRecipe,
 } from '@/lib/db';
 import { Recipe } from '@/lib/types';
 import { Colors, Spacing, Radius, Typography } from '@/lib/theme';
@@ -20,6 +23,7 @@ import { UnitConverterModal } from '@/components/UnitConverterModal';
 import { CookModeModal } from '@/components/CookModeModal';
 import { TimerPanel } from '@/components/TimerPanel';
 import { scaleIngredients, parseServingCount } from '@/lib/scaler';
+import { PRESET_TYPES } from '@/components/TagPicker';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -59,11 +63,16 @@ export default function RecipeDetailScreen() {
   const [recipeColIds, setRecipeColIds]       = useState<number[]>([]);
   const [showCollections, setShowCollections] = useState(false);
 
+  // Type picker
+  const [showTypePicker, setShowTypePicker]   = useState(false);
+
   // Ingredient checkboxes — UI only, resets on leave (used while cooking)
   const [checkedIngredients, setCheckedIngredients] = useState<Set<number>>(new Set());
 
   // Shopping list picker — separate from cooking checkboxes
   const [showShoppingPicker, setShowShoppingPicker] = useState(false);
+  const [editingTitle, setEditingTitle]     = useState(false);
+  const [titleDraft, setTitleDraft]         = useState('');
   const [shoppingSelection, setShoppingSelection]   = useState<Set<number>>(new Set());
 
   const toggleIngredient = (idx: number) => {
@@ -125,6 +134,55 @@ export default function RecipeDetailScreen() {
     await toggleFavourite(recipe.id); await load();
   };
 
+  // ── Title edit ───────────────────────────────────────────────────────────────
+
+  const handleTitleSave = async () => {
+    const trimmed = titleDraft.trim();
+    if (trimmed && trimmed !== recipe?.title) {
+      await updateRecipe(recipe!.id, { title: trimmed });
+      await load();
+    }
+    setEditingTitle(false);
+  };
+
+  const handleTitleEdit = () => {
+    setTitleDraft(recipe?.title ?? '');
+    setEditingTitle(true);
+  };
+
+  // ── Dish photo ───────────────────────────────────────────────────────────────
+
+  const saveDishPhoto = async (uri: string) => {
+    const dir  = FileSystem.documentDirectory + 'recipe-photos/';
+    await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
+    const dest = dir + `dish-${recipe.id}-${Date.now()}.jpg`;
+    await FileSystem.copyAsync({ from: uri, to: dest });
+    await updateRecipe(recipe.id, { originalImageUri: dest });
+    await load();
+  };
+
+  const handleAddPhoto = () => {
+    Alert.alert('Add Dish Photo', 'Choose a photo of the finished dish', [
+      {
+        text: 'Take Photo',
+        onPress: async () => {
+          const { status } = await ImagePicker.requestCameraPermissionsAsync();
+          if (status !== 'granted') { Alert.alert('Permission needed', 'Please allow camera access in Settings.'); return; }
+          const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.85, allowsEditing: true, aspect: [4, 3] });
+          if (!result.canceled && result.assets[0]) await saveDishPhoto(result.assets[0].uri);
+        },
+      },
+      {
+        text: 'Choose from Gallery',
+        onPress: async () => {
+          const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.85, allowsEditing: true, aspect: [4, 3] });
+          if (!result.canceled && result.assets[0]) await saveDishPhoto(result.assets[0].uri);
+        },
+      },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+
   // ── Shopping list picker ─────────────────────────────────────────────────────
 
   const openShoppingPicker = () => {
@@ -172,6 +230,14 @@ export default function RecipeDetailScreen() {
     // Tap same star again to clear rating
     const newRating = recipe.rating === stars ? 0 : stars;
     await setRating(recipe.id, newRating);
+    await load();
+  };
+
+  // ── Type change ──────────────────────────────────────────────────────────────
+
+  const handleChangeType = async (newType: string) => {
+    await updateRecipe(recipe.id, { type: newType });
+    setShowTypePicker(false);
     await load();
   };
 
@@ -232,19 +298,33 @@ export default function RecipeDetailScreen() {
       <ScrollView contentContainerStyle={styles.content}>
 
         {/* Dish photo */}
-        {recipe.originalImageUri && (
+        {recipe.originalImageUri ? (
           <Pressable onPress={() => setPhotoModal(true)} style={styles.photoWrapper}>
             <Image source={{ uri: recipe.originalImageUri }} style={styles.photo} resizeMode="cover" />
             <View style={styles.photoExpandHint}>
               <Ionicons name="expand-outline" size={14} color={Colors.white} />
               <Text style={styles.photoExpandText}>Tap to expand</Text>
             </View>
+            <Pressable style={styles.photoChangeBtn} onPress={handleAddPhoto} hitSlop={8}>
+              <Ionicons name="camera-outline" size={16} color={Colors.white} />
+              <Text style={styles.photoChangeBtnText}>Change photo</Text>
+            </Pressable>
+          </Pressable>
+        ) : (
+          <Pressable style={styles.photoPlaceholder} onPress={handleAddPhoto}>
+            <Ionicons name="camera-outline" size={36} color={Colors.textMuted} />
+            <Text style={styles.photoPlaceholderText}>Add a photo of the finished dish</Text>
           </Pressable>
         )}
 
         {/* Title & meta */}
         <View style={styles.titleSection}>
-          <Text style={styles.title}>{recipe.title}</Text>
+          <Pressable onPress={handleTitleEdit} hitSlop={4}>
+            <View style={styles.titleRow}>
+              <Text style={styles.title}>{recipe.title}</Text>
+              <Ionicons name="pencil-outline" size={16} color={Colors.textMuted} style={{ marginTop: 6 }} />
+            </View>
+          </Pressable>
           {(recipe.source || recipe.pageNumber) && (
             <Text style={styles.source}>
               📖 {recipe.source}{recipe.source && recipe.pageNumber ? ` · p.${recipe.pageNumber}` : recipe.pageNumber ? `p.${recipe.pageNumber}` : ''}
@@ -304,6 +384,14 @@ export default function RecipeDetailScreen() {
             )}
           </View>
 
+          {/* Tappable type badge */}
+          <Pressable style={styles.typeBadge} onPress={() => setShowTypePicker(true)}>
+            <Text style={styles.typeBadgeText}>
+              {PRESET_TYPES.find((p) => p.value === recipe.type)?.label ?? (recipe.type ? recipe.type.charAt(0).toUpperCase() + recipe.type.slice(1) : 'Other')}
+            </Text>
+            <Ionicons name="chevron-down" size={12} color={Colors.primary} />
+          </Pressable>
+
           {recipe.tags.length > 0 && (
             <View style={styles.tags}>
               {recipe.tags.map((t) => (
@@ -321,6 +409,7 @@ export default function RecipeDetailScreen() {
           <ActionBtn icon="calendar-outline" label="Made it!" onPress={() => setShowLog(true)} />
           <ActionBtn icon="folder-outline"  label="Collections" onPress={handleOpenCollections} />
           <ActionBtn icon="share-outline"   label="Share" onPress={handleShare} />
+          <ActionBtn icon="camera-outline"  label="Add Photo" onPress={handleAddPhoto} />
         </View>
 
         {/* Last cooked notice */}
@@ -403,6 +492,32 @@ export default function RecipeDetailScreen() {
       </ScrollView>
 
       {/* ── Modals ── */}
+
+      {/* Title edit modal */}
+      <Modal visible={editingTitle} transparent animationType="fade" onRequestClose={() => setEditingTitle(false)}>
+        <View style={styles.titleModalOverlay}>
+          <View style={styles.titleModalBox}>
+            <Text style={styles.titleModalHeading}>Rename Recipe</Text>
+            <TextInput
+              style={styles.titleModalInput}
+              value={titleDraft}
+              onChangeText={setTitleDraft}
+              autoFocus
+              selectTextOnFocus
+              returnKeyType="done"
+              onSubmitEditing={handleTitleSave}
+            />
+            <View style={styles.titleModalBtns}>
+              <Pressable style={styles.titleModalCancel} onPress={() => setEditingTitle(false)}>
+                <Text style={styles.titleModalCancelText}>Cancel</Text>
+              </Pressable>
+              <Pressable style={styles.titleModalSave} onPress={handleTitleSave}>
+                <Text style={styles.titleModalSaveText}>Save</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <UnitConverterModal visible={converterVisible} onClose={() => setConverter(false)} />
 
@@ -502,6 +617,24 @@ export default function RecipeDetailScreen() {
         </Pressable>
       </Modal>
 
+      {/* Type picker modal */}
+      <Modal visible={showTypePicker} animationType="slide" presentationStyle="formSheet" transparent onRequestClose={() => setShowTypePicker(false)}>
+        <Pressable style={styles.sheetBg} onPress={() => setShowTypePicker(false)}>
+          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.sheetTitle}>Change Recipe Type</Text>
+            {PRESET_TYPES.map((pt) => {
+              const isActive = recipe.type === pt.value;
+              return (
+                <Pressable key={pt.value} style={[styles.typePickerRow, isActive && styles.typePickerRowActive]} onPress={() => handleChangeType(pt.value)}>
+                  <Text style={[styles.typePickerLabel, isActive && styles.typePickerLabelActive]}>{pt.label}</Text>
+                  {isActive && <Ionicons name="checkmark" size={20} color={Colors.primary} />}
+                </Pressable>
+              );
+            })}
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       {/* Full-screen photo modal */}
       {recipe.originalImageUri && (
         <Modal visible={photoModal} transparent animationType="fade" onRequestClose={() => setPhotoModal(false)}>
@@ -594,9 +727,49 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 4,
   },
   photoExpandText: { color: Colors.white, fontSize: 12, fontWeight: '600' },
+  photoChangeBtn: {
+    position: 'absolute', bottom: 8, left: 8,
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: Radius.full,
+    paddingHorizontal: 10, paddingVertical: 4,
+  },
+  photoChangeBtnText: { color: Colors.white, fontSize: 12, fontWeight: '600' },
+  photoPlaceholder: {
+    height: 140, borderRadius: Radius.md,
+    backgroundColor: Colors.card, borderWidth: 1.5,
+    borderColor: Colors.border, borderStyle: 'dashed',
+    alignItems: 'center', justifyContent: 'center', gap: 8,
+  },
+  photoPlaceholderText: { fontSize: 13, color: Colors.textMuted, fontWeight: '600' },
 
   titleSection: { gap: Spacing.sm },
   title: { ...Typography.h1 },
+  titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, flexWrap: 'wrap' },
+  titleModalOverlay: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center', justifyContent: 'center', padding: 24,
+  },
+  titleModalBox: {
+    backgroundColor: Colors.white, borderRadius: Radius.lg,
+    padding: Spacing.md, width: '100%', gap: Spacing.md,
+  },
+  titleModalHeading: { ...Typography.h3, textAlign: 'center' },
+  titleModalInput: {
+    borderWidth: 1.5, borderColor: Colors.primary, borderRadius: Radius.md,
+    paddingHorizontal: Spacing.md, paddingVertical: 12,
+    fontSize: 16, color: Colors.text,
+  },
+  titleModalBtns: { flexDirection: 'row', gap: Spacing.sm },
+  titleModalCancel: {
+    flex: 1, paddingVertical: 12, borderRadius: Radius.md,
+    borderWidth: 1.5, borderColor: Colors.border, alignItems: 'center',
+  },
+  titleModalCancelText: { fontSize: 15, fontWeight: '600', color: Colors.textMuted },
+  titleModalSave: {
+    flex: 1, paddingVertical: 12, borderRadius: Radius.md,
+    backgroundColor: Colors.primary, alignItems: 'center',
+  },
+  titleModalSaveText: { fontSize: 15, fontWeight: '700', color: Colors.white },
   source: { fontSize: 14, color: Colors.textMuted },
 
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
@@ -712,6 +885,24 @@ const styles = StyleSheet.create({
   colRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.sm },
   colName: { flex: 1, fontSize: 15, fontWeight: '600', color: Colors.text },
   colCount: { fontSize: 13, color: Colors.textMuted },
+
+  // Tappable type badge
+  typeBadge: {
+    alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: '#FDE8DF', borderRadius: Radius.full,
+    paddingHorizontal: 12, paddingVertical: 5, borderWidth: 1.5, borderColor: Colors.primary,
+  },
+  typeBadgeText: { fontSize: 13, fontWeight: '700', color: Colors.primary },
+
+  // Type picker rows
+  typePickerRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingVertical: 14, paddingHorizontal: Spacing.sm,
+    borderBottomWidth: 1, borderColor: Colors.border,
+  },
+  typePickerRowActive: { backgroundColor: '#FDE8DF' },
+  typePickerLabel: { fontSize: 16, color: Colors.text, fontWeight: '500' },
+  typePickerLabelActive: { color: Colors.primary, fontWeight: '700' },
 
   // Photo modal
   modalBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.95)' },
