@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "buildNumber": "5",
+      "buildNumber": "6",
       "bundleIdentifier": "com.dardern.recipebox",
       "infoPlist": {
         "NSCameraUsageDescription": "Recipe Box uses your camera to capture recipe pages for OCR.",
